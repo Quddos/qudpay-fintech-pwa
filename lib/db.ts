@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless"
 
-const sql = neon("postgresql://qudpay_owner:password123@ep-example.us-east-1.aws.neon.tech/qudpay?sslmode=require")
+const sql = neon(process.env.DATABASE_URL!)
 
 export { sql }
 
