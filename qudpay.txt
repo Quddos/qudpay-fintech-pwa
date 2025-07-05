@@ -1,0 +1,89 @@
+﻿Naira-Rupee Exchange Platform for African Students in India
+1. Executive Summary (Simple Overview)
+What We Do:
+A secure money exchange service helping Nigerian students in India send money home (Nigeria) or receive funds from Africa.
+How We Profit:
+We keep a 5-6% margin on each transaction  
+
+
+
+
+
+
+
+
+1. Students send Naira to our Nigeria account
+2. We handle all conversions and transfers equivalent to student india account.
+Core features to implement:
+1. A fintech landing page website that demonstrates the features of the platform with animation of money exchange student should be able to see that we credit them within 5-10 minutes.
+2. Student can see our conversion rate in realtime when they enter the amount they want to exchange, the rate calculation is below.
+3. Student can check conversion rate before sign in, and select country to exchange mostly india to nigeria vice versa first.
+4. User can login through clerk
+5. When user click exchange now, it should take them to exchange page have 3 tabs 1. How you want to receive your fund (India UPI,India BANK)- if upi enter upi, receiver whatsapp number and display name. If bank enter bank name, account number, ifsc code, and receiver whatsapp number. Tab2: Enter Your email address to receive our naira account to make payment into.when user click submit it should automatic send them our naira bank information to there email and display it on the screen of website. Tab3: How much exchange in naira, display what user will get in inr, upload transaction receipt.
+
+
+When user click submit it should show the amount paid on there profile header as transaction pending.
+
+
+
+
+Here's a clear breakdown of the exchange rate calculation and your profit margin:
+1. Given Rates:
+* GBP → INR: £1 = ₹116.4 (Taptap rate)
+* INR → NGN: ₹1 = ₦17.89 (Market rate)
+* GBP → NGN: £1 = ₦2,120 (Market rate)
+2. Your Target Rate for Students (INR→NGN):
+You want students to get the GBP→INR rate equivalent, so we calculate:
+Step 1: Find the implied INR→NGN rate based on GBP→NGN and GBP→INR:
+INR→NGN Rate=GBP→NGN RateGBP→INR Rate=2120116.4=18.21 NGN per INR
+INR→NGN Rate=
+GBP→INR Rate
+GBP→NGN Rate
+​
+=
+116.4
+2120
+​
+=18.21 NGN per INR
+Step 2: Compare to the market INR→NGN rate (₹1 = ₦17.89) to find your margin:
+Margin=18.21−17.89=0.32 NGN per INR
+Margin=18.21−17.89=0.32 NGN per INR
+Step 3: Calculate your percentage profit:
+Profit %=(0.3217.89)×100=1.79%
+Profit %=(
+17.89
+0.32
+​
+)×100=1.79%
+________________
+
+
+3. Final Rates to Offer Students:
+Rate Type
+	Value
+	Explanation
+	Market Rate
+	₹1 = ₦17.89
+	Actual INR→NGN rate
+	Your Rate
+	₹1 = ₦18.21
+	GBP-linked rate (1.79% markup)
+	Effective Margin
+	1.79%
+	Your profit per transaction
+	________________
+
+
+4. Example Transaction:
+* Student Sends: ₹10,000
+* Student Receives:
+   * At your rate: ₹10,000 × 18.21 = ₦182,100
+   * At market rate: ₹10,000 × 17.89 = ₦178,900
+* Your Profit: ₦182,100 - ₦178,900 = ₦3,200 (1.79%)
+________________
+
+
+5. Competitive Positioning:
+* Informal Market Rate: ~₦17.5/INR (2.2% worse than yours)
+* Banks/PayPal: ~₦16.8/INR (7.88% worse than yours)
+Verdict: Your rate (₦18.21) is better than competitors while still profitable.
