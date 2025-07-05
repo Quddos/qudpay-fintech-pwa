@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "QudPay - Money Exchange Platform",
-  description: "Secure money exchange for Nigerian students in India",
+  description: "Secure money exchange for African students in India",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
