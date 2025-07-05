@@ -10,12 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DollarSign, Users, Clock, RefreshCw } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
 import { formatCurrency } from "@/lib/currency-converter"
 import { useRouter } from "next/navigation"
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
@@ -25,13 +23,8 @@ export default function AdminDashboard() {
   const [kycRequests, setKycRequests] = useState([])
 
   useEffect(() => {
-    if (!user?.is_admin) {
-      router.push("/dashboard")
-      return
-    }
-
     fetchDashboardData()
-  }, [user, router])
+  }, [])
 
   const fetchDashboardData = async () => {
     try {
@@ -121,8 +114,6 @@ export default function AdminDashboard() {
       console.error("Failed to approve KYC:", error)
     }
   }
-
-  if (!user?.is_admin) return null
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">

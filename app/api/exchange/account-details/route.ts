@@ -16,27 +16,28 @@ export async function POST(request: NextRequest) {
     }
 
     const account = accounts[0]
-
-    // In a real app, you would send an email here
-    // For now, we'll just return the details
     const accountDetails = {
       bankName: account.bank_name,
       accountName: account.account_name,
       accountNumber: account.account_number,
     }
 
-    // TODO: Send email with account details
-    console.log(`Sending account details to ${email}:`, accountDetails)
-
+    // Send email with actual account details
     await sendEmail({
       to: email,
       subject: 'Your Naira Account Details',
-      html: `<p>Here are the Naira account details for your payment:</p><p><b>Account Name:</b> [Your Account Name]<br/><b>Account Number:</b> [Your Account Number]<br/><b>Bank Name:</b> [Your Bank Name]</p>`
+      html: `<p>Here are the Naira account details for your payment:</p>
+        <ul>
+          <li><b>Account Name:</b> ${accountDetails.accountName}</li>
+          <li><b>Account Number:</b> ${accountDetails.accountNumber}</li>
+          <li><b>Bank Name:</b> ${accountDetails.bankName}</li>
+        </ul>
+        <p>Please make your payment and upload your receipt to complete the exchange process.</p>`
     })
 
     return NextResponse.json(accountDetails)
   } catch (error) {
-    console.error("Account details error:", error)
-    return NextResponse.json({ error: "Failed to get account details" }, { status: 500 })
+    console.error("Account details email error:", error)
+    return NextResponse.json({ error: "Failed to get account details or send email" }, { status: 500 })
   }
 }

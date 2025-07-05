@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, Camera, CheckCircle } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 
 export default function KYCPage() {
@@ -28,7 +27,6 @@ export default function KYCPage() {
     studentIdFile: null as File | null,
   })
 
-  const { user } = useAuth()
   const router = useRouter()
 
   const handleInputChange = (field: string, value: string) => {
