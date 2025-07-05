@@ -7,9 +7,13 @@ const JWT_SECRET = "your-jwt-secret-key-here"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { email, pin } = await request.json()
 
-    // Simple authentication - in production, use proper password hashing
+    if (!email || !pin) {
+      return NextResponse.json({ error: "Email and PIN are required" }, { status: 400 })
+    }
+
+    // Simple authentication - in production, use proper PIN hashing
     const users = await sql`
       SELECT * FROM users WHERE email = ${email}
     `
@@ -19,6 +23,9 @@ export async function POST(request: NextRequest) {
     }
 
     const user = users[0]
+    if (user.pin !== pin) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+    }
 
     // Create JWT token
     const token = jwt.sign({ userId: user.id, email: user.email, isAdmin: user.is_admin }, JWT_SECRET, {

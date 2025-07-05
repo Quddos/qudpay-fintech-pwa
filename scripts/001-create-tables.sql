@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   full_name VARCHAR(255),
   nationality VARCHAR(100),
   phone VARCHAR(20),
+  pin VARCHAR(20),
   is_admin BOOLEAN DEFAULT FALSE,
   kyc_status VARCHAR(20) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

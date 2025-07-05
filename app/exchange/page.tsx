@@ -11,6 +11,125 @@ import { Upload, CreditCard, Smartphone, Mail, Calculator, Home, ArrowLeft } fro
 import { calculateExchange, formatCurrency } from "@/lib/currency-converter"
 import { useRouter } from "next/navigation"
 
+// Modal and auth forms
+function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [tab, setTab] = useState("login")
+  const switchToLogin = () => setTab("login")
+  return open ? (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs">
+      <div className="bg-blue-400/60 rounded-lg shadow-lg p-6 w-full max-w-md relative">
+        {/* No close button */}
+        <Tabs value={tab} onValueChange={setTab} className="mb-4">
+          <TabsList>
+            <TabsTrigger value="login">Sign In</TabsTrigger>
+            <TabsTrigger value="register">Sign Up</TabsTrigger>
+          </TabsList>
+          <TabsContent value="login">
+            <AuthLoginForm onSuccess={onClose} />
+          </TabsContent>
+          <TabsContent value="register">
+            <AuthRegisterForm onSuccess={onClose} switchToLogin={switchToLogin} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  ) : null
+}
+
+function AuthLoginForm({ onSuccess }: { onSuccess: () => void }) {
+  const [form, setForm] = useState({ email: "", pin: "" })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [userName, setUserName] = useState<string | null>(null)
+  const router = useRouter()
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setUserName(data.full_name || data.email)
+        localStorage.setItem("userName", data.full_name || data.email)
+        onSuccess()
+      } else {
+        setError(data.error || "Login failed")
+      }
+    } catch (err) {
+      setError("Login failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+      <Input name="pin" type="password" placeholder="PIN" value={form.pin} onChange={handleChange} required minLength={4} maxLength={20} />
+      <Button type="submit" className="w-full" disabled={loading}>{loading ? "Logging in..." : "Login"}</Button>
+      {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+    </form>
+  )
+}
+
+function AuthRegisterForm({ onSuccess, switchToLogin }: { onSuccess: () => void, switchToLogin: () => void }) {
+  const [form, setForm] = useState({ email: "", fullName: "", phone: "", pin: "" })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    setSuccess("")
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setSuccess("Registration successful! Please log in.")
+        setTimeout(() => switchToLogin(), 1200)
+      } else {
+        setError(data.error || "Registration failed")
+      }
+    } catch (err) {
+      setError("Registration failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+      <Input name="fullName" placeholder="Full Name" value={form.fullName} onChange={handleChange} required />
+      <Input name="phone" placeholder="WhatsApp Number (e.g. +91XXXXXXXXXX)" value={form.phone} onChange={handleChange} />
+      <Input name="pin" type="password" placeholder="Choose a PIN" value={form.pin} onChange={handleChange} required minLength={4} maxLength={20} />
+      <Button type="submit" className="w-full" disabled={loading}>{loading ? "Registering..." : "Register"}</Button>
+      {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+      {success && <div className="text-green-600 text-sm mt-2">{success}</div>}
+    </form>
+  )
+}
+
+function isLoggedIn() {
+  // Simple check for auth-token cookie (client-side, not secure for production)
+  if (typeof document === "undefined") return false
+  return document.cookie.split(";").some((c) => c.trim().startsWith("auth-token="))
+}
+
 export default function ExchangePage() {
   const router = useRouter()
 
@@ -41,6 +160,21 @@ export default function ExchangePage() {
   const [rate, setRate] = useState<number | null>(null)
   const [rateLoading, setRateLoading] = useState(false)
   const [rateError, setRateError] = useState<string | null>(null)
+  const [showAuth, setShowAuth] = useState(false)
+  const [balance, setBalance] = useState<'0'|'pending'|string>('0')
+  const [userName, setUserName] = useState<string | null>(null)
+
+  // Simulate fetching balance (replace with real API later)
+  useEffect(() => {
+    // TODO: Replace with real API call to get user balance
+    setBalance('0')
+  }, [])
+
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      setShowAuth(true)
+    }
+  }, [])
 
   useEffect(() => {
     async function fetchRate() {
@@ -76,6 +210,12 @@ export default function ExchangePage() {
       setExchangeResult(null)
     }
   }, [exchangeData.amount, rate])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUserName(localStorage.getItem("userName"))
+    }
+  }, [showAuth])
 
   const handleInputChange = (field: string, value: string) => {
     setExchangeData((prev) => ({ ...prev, [field]: value }))
@@ -178,6 +318,15 @@ export default function ExchangePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 relative">
+      {/* Exchange Header */}
+      <div className="flex items-center justify-between mb-8 bg-white/80 rounded-lg shadow p-4">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => window.location.href = '/'}>Home</Button>
+          <Button variant="outline" onClick={() => window.location.href = '/kyc'}>KYC</Button>
+          <Button variant="outline" onClick={() => window.location.href = '/sell'}>Sell to Us/Invest</Button>
+        </div>
+        <div className="font-semibold text-blue-700">{userName ? `Welcome, ${userName}` : "Balance: "}{!userName && balance}</div>
+      </div>
       <div className="max-w-4xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card>
@@ -515,6 +664,7 @@ export default function ExchangePage() {
           <Home className="h-6 w-6" />
         </Button>
       </div>
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
   )
 }

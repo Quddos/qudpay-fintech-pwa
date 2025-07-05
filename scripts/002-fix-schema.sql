@@ -17,6 +17,9 @@ VALUES
   ('NGN', 'INR', 0.0549, 1)
 ON CONFLICT DO NOTHING;
 
+-- Add pin field to users table for authentication
+ALTER TABLE users ADD COLUMN IF NOT EXISTS pin VARCHAR(20);
+
 -- Create admin user
 INSERT INTO users (email, full_name, is_admin, kyc_status) 
 VALUES ('admin@qudpay.com', 'QudPay Admin', true, 'approved')

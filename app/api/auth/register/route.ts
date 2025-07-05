@@ -3,7 +3,11 @@ import { sql } from "@/lib/db"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, fullName, phone } = await request.json()
+    const { email, fullName, phone, pin } = await request.json()
+
+    if (!email || !pin) {
+      return NextResponse.json({ error: "Email and PIN are required" }, { status: 400 })
+    }
 
     // Check if user already exists
     const existingUsers = await sql`
@@ -14,10 +18,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 })
     }
 
-    // Create new user
+    // WARNING: In production, hash the PIN before storing!
     const newUsers = await sql`
-      INSERT INTO users (email, full_name, phone)
-      VALUES (${email}, ${fullName}, ${phone})
+      INSERT INTO users (email, full_name, phone, pin)
+      VALUES (${email}, ${fullName}, ${phone}, ${pin})
       RETURNING id, email, full_name, is_admin, kyc_status
     `
 
