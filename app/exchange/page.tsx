@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, CreditCard, Smartphone, Mail, Calculator, Home, ArrowLeft } from "lucide-react"
+import { Upload, CreditCard, Smartphone, Mail, Calculator, Home, ArrowLeft, User, LogOut } from "lucide-react"
 import { calculateExchange, formatCurrency } from "@/lib/currency-converter"
 import { useRouter } from "next/navigation"
 
@@ -163,6 +163,28 @@ export default function ExchangePage() {
   const [showAuth, setShowAuth] = useState(false)
   const [balance, setBalance] = useState<'0'|'pending'|string>('0')
   const [userName, setUserName] = useState<string | null>(null)
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false)
+      }
+    }
+    if (showProfileMenu) {
+      document.addEventListener("mousedown", handleClick)
+    }
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [showProfileMenu])
+
+  function handleLogout() {
+    // Remove cookie (client-side, best effort)
+    document.cookie = "auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+    localStorage.removeItem("userName")
+    window.location.reload()
+  }
 
   // Simulate fetching balance (replace with real API later)
   useEffect(() => {
@@ -216,6 +238,18 @@ export default function ExchangePage() {
       setUserName(localStorage.getItem("userName"))
     }
   }, [showAuth])
+
+  useEffect(() => {
+    if (userName) {
+      fetch("/api/user/balance")
+        .then(res => res.json())
+        .then(data => {
+          if (data.balance === null || data.balance === undefined) setBalance('pending')
+          else setBalance(data.balance)
+        })
+        .catch(() => setBalance('pending'))
+    }
+  }, [userName])
 
   const handleInputChange = (field: string, value: string) => {
     setExchangeData((prev) => ({ ...prev, [field]: value }))
@@ -320,12 +354,37 @@ export default function ExchangePage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4 relative">
       {/* Exchange Header */}
       <div className="flex items-center justify-between mb-8 bg-white/80 rounded-lg shadow p-4">
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => window.location.href = '/'}>Home</Button>
-          <Button variant="outline" onClick={() => window.location.href = '/kyc'}>KYC</Button>
-          <Button variant="outline" onClick={() => window.location.href = '/sell'}>Sell to Us/Invest</Button>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.href = '/'}>Home</Button>
+            <Button variant="outline" onClick={() => window.location.href = '/kyc'}>KYC</Button>
+            <Button variant="outline" onClick={() => window.location.href = '/sell'}>Sell to Us/Invest</Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="font-semibold text-blue-700">{userName ? `Welcome, ${userName}` : "Balance: "}{balance === 'pending' ? 'Pending' : balance}</div>
+            {userName && (
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  className="ml-2 rounded-full bg-blue-100 p-2 hover:bg-blue-200 transition"
+                  onClick={() => setShowProfileMenu((v) => !v)}
+                  aria-label="Profile"
+                >
+                  <User className="h-5 w-5 text-blue-700" />
+                </button>
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow z-50">
+                    <button
+                      className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="font-semibold text-blue-700">{userName ? `Welcome, ${userName}` : "Balance: "}{!userName && balance}</div>
       </div>
       <div className="max-w-4xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

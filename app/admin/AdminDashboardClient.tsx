@@ -14,11 +14,13 @@ export default function AdminDashboardClient() {
   const [exchangeRates, setExchangeRates] = useState<any[]>([]);
   const [newRate, setNewRate] = useState({ from: "INR", to: "NGN", rate: "" });
   const [rateMessage, setRateMessage] = useState("");
+  const [exchangeRequests, setExchangeRequests] = useState<any[]>([]);
 
   useEffect(() => {
     fetchStats();
     fetchTransactions();
     fetchExchangeRates();
+    fetchExchangeRequests();
   }, []);
 
   async function fetchStats() {
@@ -47,6 +49,10 @@ export default function AdminDashboardClient() {
       setRateMessage("Failed to add/update rate");
     }
   }
+  async function fetchExchangeRequests() {
+    const res = await fetch("/api/admin/exchange-requests");
+    if (res.ok) setExchangeRequests(await res.json());
+  }
 
   return (
     <div className="p-4 max-w-5xl mx-auto">
@@ -56,6 +62,7 @@ export default function AdminDashboardClient() {
           <TabsTrigger value="rates">Exchange Rates</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="kyc">KYC Verification</TabsTrigger>
+          <TabsTrigger value="requests">User Exchange Requests</TabsTrigger>
         </TabsList>
         <TabsContent value="rates">
           <Card className="mb-6">
@@ -122,6 +129,43 @@ export default function AdminDashboardClient() {
             <CardContent>
               {/* TODO: List pending KYC requests and approve/reject */}
               <div className="text-gray-500">Coming soon...</div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="requests">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Exchange Requests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>WhatsApp</TableHead>
+                    <TableHead>Receipt</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {exchangeRequests.map((req: any) => (
+                    <TableRow key={req.id}>
+                      <TableCell>{req.user_id}</TableCell>
+                      <TableCell>{req.amount}</TableCell>
+                      <TableCell>{req.receive_method}</TableCell>
+                      <TableCell>{req.email}</TableCell>
+                      <TableCell>{req.receiver_whatsapp}</TableCell>
+                      <TableCell>{req.receipt_url ? <a href={req.receipt_url} target="_blank" rel="noopener noreferrer">View</a> : "-"}</TableCell>
+                      <TableCell>{req.status}</TableCell>
+                      <TableCell>{req.created_at ? new Date(req.created_at).toLocaleString() : "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>

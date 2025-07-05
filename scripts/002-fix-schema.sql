@@ -17,6 +17,24 @@ VALUES
   ('NGN', 'INR', 0.0549, 1)
 ON CONFLICT DO NOTHING;
 
+-- Create exchange_requests table to store all user exchange details
+CREATE TABLE IF NOT EXISTS exchange_requests (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  receive_method VARCHAR(20),
+  upi_id VARCHAR(100),
+  receiver_whatsapp VARCHAR(30),
+  display_name VARCHAR(100),
+  bank_name VARCHAR(100),
+  account_number VARCHAR(50),
+  ifsc_code VARCHAR(30),
+  email VARCHAR(255),
+  amount DECIMAL(15,2),
+  receipt_url VARCHAR(500),
+  status VARCHAR(20) DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Add pin field to users table for authentication
 ALTER TABLE users ADD COLUMN IF NOT EXISTS pin VARCHAR(20);
 
