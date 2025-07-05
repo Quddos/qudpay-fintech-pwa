@@ -38,13 +38,44 @@ export default function ExchangePage() {
   const [accountDetails, setAccountDetails] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [rate, setRate] = useState<number | null>(null)
+  const [rateLoading, setRateLoading] = useState(false)
+  const [rateError, setRateError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (exchangeData.amount) {
-      const result = calculateExchange(Number.parseFloat(exchangeData.amount), "NGN", "INR")
-      setExchangeResult(result)
+    async function fetchRate() {
+      setRateLoading(true)
+      setRateError(null)
+      try {
+        const res = await fetch("/api/exchange/rate")
+        const data = await res.json()
+        setRate(data.ngnToInr?.rate || null)
+      } catch (e) {
+        setRateError("Failed to fetch rate")
+        setRate(null)
+      } finally {
+        setRateLoading(false)
+      }
     }
-  }, [exchangeData.amount])
+    fetchRate()
+  }, [])
+
+  useEffect(() => {
+    if (exchangeData.amount && rate) {
+      const amt = Number.parseFloat(exchangeData.amount)
+      let convertedAmount = amt * rate
+      let platformFee = convertedAmount * 0.045
+      let netAmount = convertedAmount - platformFee
+      setExchangeResult({
+        convertedAmount,
+        rate,
+        platformFee,
+        netAmount,
+      })
+    } else {
+      setExchangeResult(null)
+    }
+  }, [exchangeData.amount, rate])
 
   const handleInputChange = (field: string, value: string) => {
     setExchangeData((prev) => ({ ...prev, [field]: value }))

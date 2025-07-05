@@ -15,13 +15,55 @@ export default function LandingPage() {
   const [fromCurrency, setFromCurrency] = useState<string>("INR")
   const [toCurrency, setToCurrency] = useState<string>("NGN")
   const [exchangeResult, setExchangeResult] = useState<any>(null)
+  const [rate, setRate] = useState<number | null>(null)
+  const [rateLoading, setRateLoading] = useState(false)
+  const [rateError, setRateError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (amount && fromCurrency && toCurrency) {
-      const result = calculateExchange(Number.parseFloat(amount), fromCurrency, toCurrency)
-      setExchangeResult(result)
+    async function fetchRate() {
+      setRateLoading(true)
+      setRateError(null)
+      try {
+        const res = await fetch("/api/exchange/rate")
+        const data = await res.json()
+        if (fromCurrency === "INR" && toCurrency === "NGN") {
+          setRate(data.inrToNgn?.rate !== undefined ? Number(data.inrToNgn.rate) : null)
+        } else if (fromCurrency === "NGN" && toCurrency === "INR") {
+          setRate(data.ngnToInr?.rate !== undefined ? Number(data.ngnToInr.rate) : null)
+        } else {
+          setRate(null)
+        }
+      } catch (e) {
+        setRateError("Failed to fetch rate")
+        setRate(null)
+      } finally {
+        setRateLoading(false)
+      }
     }
-  }, [amount, fromCurrency, toCurrency])
+    fetchRate()
+  }, [fromCurrency, toCurrency])
+
+  useEffect(() => {
+    if (amount && rate) {
+      const amt = Number.parseFloat(amount)
+      let convertedAmount = 0
+      if (fromCurrency === "NGN" && toCurrency === "INR") {
+        convertedAmount = amt / rate
+      } else if (fromCurrency === "INR" && toCurrency === "NGN") {
+        convertedAmount = amt * rate
+      }
+      let platformFee = convertedAmount * 0.045
+      let netAmount = convertedAmount - platformFee
+      setExchangeResult({
+        convertedAmount,
+        rate,
+        platformFee,
+        netAmount,
+      })
+    } else {
+      setExchangeResult(null)
+    }
+  }, [amount, rate, fromCurrency, toCurrency])
 
   const features = [
     {
@@ -251,7 +293,7 @@ export default function LandingPage() {
                       <div className="mt-2 text-sm text-gray-600">
                         <p className="text-gray-600">Exchange Rate</p>
                         <p className="font-semibold">
-                          1 {fromCurrency} = {exchangeResult.rate.toFixed(4)} {toCurrency}
+                          1 {fromCurrency} = {typeof exchangeResult?.rate === 'number' && !isNaN(exchangeResult.rate) ? exchangeResult.rate.toFixed(4) : '-'} {toCurrency}
                         </p>
                       </div>
                       <div className="mt-2 text-sm">
