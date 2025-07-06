@@ -3,7 +3,7 @@ import { sql } from "@/lib/db"
 import { cookies } from "next/headers"
 import jwt from "jsonwebtoken"
 
-const JWT_SECRET = "your-jwt-secret-key-here"
+const JWT_SECRET = process.env.JWT_SECRET!
 
 function getUserIdFromRequest(request: NextRequest) {
   const cookieHeader = request.headers.get("cookie") || ""
