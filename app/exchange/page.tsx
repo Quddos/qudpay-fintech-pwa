@@ -124,12 +124,6 @@ function AuthRegisterForm({ onSuccess, switchToLogin }: { onSuccess: () => void,
   )
 }
 
-function isLoggedIn() {
-  // Simple check for auth-token cookie (client-side, not secure for production)
-  if (typeof document === "undefined") return false
-  return document.cookie.split(";").some((c) => c.trim().startsWith("auth-token="))
-}
-
 export default function ExchangePage() {
   const router = useRouter()
 
@@ -193,10 +187,18 @@ export default function ExchangePage() {
   }, [])
 
   useEffect(() => {
-    if (!isLoggedIn()) {
-      setShowAuth(true)
-    }
-  }, [])
+    fetch("/api/auth/me")
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        if (data.authenticated) {
+          // Optionally set user state here
+          setShowAuth(false);
+        } else {
+          setShowAuth(true);
+        }
+      })
+      .catch(() => setShowAuth(true));
+  }, []);
 
   useEffect(() => {
     async function fetchRate() {

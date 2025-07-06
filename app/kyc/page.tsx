@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, Camera, CheckCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import dynamic from "next/dynamic"
+import { useRef } from "react"
+const Webcam = dynamic(() => import("react-webcam").then(m => m.default) as any, { ssr: false })
 
 export default function KYCPage() {
   const [step, setStep] = useState(1)
@@ -28,6 +31,9 @@ export default function KYCPage() {
   })
 
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const from = searchParams.get("from")
+  const webcamRef = useRef<any>(null)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -74,7 +80,11 @@ export default function KYCPage() {
       })
 
       if (response.ok) {
-        router.push("/dashboard?kyc=submitted")
+        if (from === "sell") {
+          router.push("/sell")
+        } else {
+          router.push("/profile")
+        }
       }
     } catch (error) {
       console.error("KYC submission failed:", error)
@@ -195,28 +205,43 @@ export default function KYCPage() {
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-sm text-gray-600 mb-4">Take a live photo of yourself</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    const input = document.createElement("input")
-                    input.type = "file"
-                    input.accept = "image/*"
-                    input.capture = "user"
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0]
-                      if (file) handleFileChange("photoFile", file)
-                    }
-                    input.click()
-                  }}
-                >
-                  {formData.photoFile ? "Photo Captured" : "Take Photo"}
-                </Button>
-                {formData.photoFile && (
-                  <div className="mt-2 flex items-center justify-center text-green-600">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    <span className="text-sm">Photo uploaded</span>
-                  </div>
+                {!formData.photoFile ? (
+                  <>
+                    {(
+                      <Webcam
+                        audio={false}
+                        screenshotFormat="image/jpeg"
+                        videoConstraints={{ facingMode: "user" }}
+                        className="mx-auto rounded max-h-40"
+                        ref={webcamRef as any}
+                      />
+                    ) as any}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-2"
+                      onClick={() => {
+                        const imageSrc = webcamRef.current.getScreenshot()
+                        if (imageSrc) {
+                          fetch(imageSrc)
+                            .then(res => res.blob())
+                            .then(blob => {
+                              const file = new File([blob], `live-photo-${Date.now()}.jpg`, { type: "image/jpeg" })
+                              handleFileChange("photoFile", file)
+                            })
+                        }
+                      }}
+                    >
+                      Capture Photo
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <img src={URL.createObjectURL(formData.photoFile)} alt="Preview" className="mx-auto rounded mt-2 max-h-32" />
+                    <Button type="button" variant="outline" className="mt-2" onClick={() => handleFileChange("photoFile", null)}>
+                      Retake Photo
+                    </Button>
+                  </>
                 )}
               </div>
             </div>

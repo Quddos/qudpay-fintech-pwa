@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     // Upload to Vercel Blob
     const blob = await put(`kyc/${type}/${Date.now()}-${file.name}`, file, {
       access: "public",
-      token: "vercel_blob_rw_token_here", // Replace with actual token
+      token: process.env.VERCEL_BLOB_RW_TOKEN,
     })
 
     return NextResponse.json({ url: blob.url })

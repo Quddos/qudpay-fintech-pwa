@@ -15,12 +15,14 @@ export default function AdminDashboardClient() {
   const [newRate, setNewRate] = useState({ from: "INR", to: "NGN", rate: "" });
   const [rateMessage, setRateMessage] = useState("");
   const [exchangeRequests, setExchangeRequests] = useState<any[]>([]);
+  const [kycRequests, setKycRequests] = useState<any[]>([]);
 
   useEffect(() => {
     fetchStats();
     fetchTransactions();
     fetchExchangeRates();
     fetchExchangeRequests();
+    fetchKycRequests();
   }, []);
 
   async function fetchStats() {
@@ -52,6 +54,19 @@ export default function AdminDashboardClient() {
   async function fetchExchangeRequests() {
     const res = await fetch("/api/admin/exchange-requests");
     if (res.ok) setExchangeRequests(await res.json());
+  }
+  async function fetchKycRequests() {
+    const res = await fetch("/api/admin/kyc-requests");
+    if (res.ok) setKycRequests(await res.json());
+  }
+
+  async function handleKycAction(user_id: number, status: "approved" | "rejected") {
+    await fetch("/api/admin/kyc-requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, status }),
+    })
+    fetchKycRequests()
   }
 
   return (
@@ -124,11 +139,48 @@ export default function AdminDashboardClient() {
         <TabsContent value="kyc">
           <Card>
             <CardHeader>
-              <CardTitle>KYC Verification</CardTitle>
+              <CardTitle>KYC Submissions</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* TODO: List pending KYC requests and approve/reject */}
-              <div className="text-gray-500">Coming soon...</div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Full Name</TableHead>
+                    <TableHead>Nationality</TableHead>
+                    <TableHead>School</TableHead>
+                    <TableHead>Passport</TableHead>
+                    <TableHead>Student ID</TableHead>
+                    <TableHead>Purpose</TableHead>
+                    <TableHead>Photo</TableHead>
+                    <TableHead>ID Card</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Submitted</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {kycRequests.map((req: any) => (
+                    <TableRow key={req.id}>
+                      <TableCell>{req.user_id}</TableCell>
+                      <TableCell>{req.full_name || '-'}</TableCell>
+                      <TableCell>{req.nationality || '-'}</TableCell>
+                      <TableCell>{req.school_name || '-'}</TableCell>
+                      <TableCell>{req.passport_number || '-'}</TableCell>
+                      <TableCell>{req.student_id || '-'}</TableCell>
+                      <TableCell>{req.purpose_of_use || '-'}</TableCell>
+                      <TableCell>{req.photo_url ? <a href={req.photo_url} target="_blank" rel="noopener noreferrer">View</a> : '-'}</TableCell>
+                      <TableCell>{req.identity_card_url ? <a href={req.identity_card_url} target="_blank" rel="noopener noreferrer">View</a> : '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleKycAction(req.user_id, "approved")}>Approve</Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleKycAction(req.user_id, "rejected")}>Reject</Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>{req.created_at ? new Date(req.created_at).toLocaleString() : '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>

@@ -81,6 +81,24 @@ CREATE TABLE IF NOT EXISTS transactions (
   completed_at TIMESTAMP
 );
 
+-- Exchange requests table
+CREATE TABLE IF NOT EXISTS exchange_requests (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  receive_method VARCHAR(20),
+  upi_id VARCHAR(100),
+  receiver_whatsapp VARCHAR(30),
+  display_name VARCHAR(100),
+  bank_name VARCHAR(100),
+  account_number VARCHAR(50),
+  ifsc_code VARCHAR(30),
+  email VARCHAR(255),
+  amount DECIMAL(15,2),
+  receipt_url VARCHAR(500),
+  status VARCHAR(20) DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Insert default exchange rate
 INSERT INTO exchange_rates (from_currency, to_currency, rate, admin_id) 
 VALUES ('INR', 'NGN', 18.21, 1) ON CONFLICT DO NOTHING;
