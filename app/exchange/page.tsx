@@ -350,6 +350,18 @@ export default function ExchangePage() {
     }
   }
 
+  async function handleSellClick() {
+    // Fetch user KYC status
+    const res = await fetch("/api/user/kyc-status")
+    const data = await res.json()
+    if (data.kyc_status === "approved") {
+      window.location.href = "/sell"
+    } else {
+      alert("You must complete KYC before using this feature.")
+      window.location.href = "/kyc"
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 relative">
       {/* Exchange Header */}
@@ -358,7 +370,7 @@ export default function ExchangePage() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => window.location.href = '/'}>Home</Button>
             <Button variant="outline" onClick={() => window.location.href = '/kyc'}>KYC</Button>
-            <Button variant="outline" onClick={() => window.location.href = '/sell'}>Sell to Us/Invest</Button>
+            <Button variant="outline" onClick={handleSellClick}>Sell to Us/Invest</Button>
           </div>
           <div className="flex items-center gap-2">
             <div className="font-semibold text-blue-700">{userName ? `Welcome, ${userName}` : "Balance: "}{balance === 'pending' ? 'Pending' : balance}</div>
